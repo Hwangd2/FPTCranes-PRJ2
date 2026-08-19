@@ -1,0 +1,10 @@
+[pytest]
+miniversion = "9.0"
+pythonpath = ["."]
+addopts = ["-s", "-v", "--tb=no", "-p", "no:warnings", "-p", "no:sugar"]
+testpaths = ["tests"]
+python_functions = ["test", "test_", "unittest_"]
+python_files = ["test_*.py", "unittest_*.py"]
+filterwarnings = ["ignore::pytest.PytestUnknownMarkWarning"]
+markers = []
+xfail_strict = false

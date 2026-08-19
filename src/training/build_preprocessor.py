@@ -1,0 +1,60 @@
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from sklearn.compose import ColumnTransformer
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OrdinalEncoder, StandardScaler
+
+from src.constants import (
+    EDUCATION_ORDER,
+    NOMINAL_FEATURES,
+    NUMERIC_FEATURES,
+    ORDINAL_FEATURES,
+)
+from src.training.one_hot_encoder import one_hot_encoder
+
+LOGGER = logging.getLogger("ml_pipeline.training")
+
+
+def build_preprocessor(scale_numeric: bool) -> ColumnTransformer:
+    """Construct an unfitted, leakage-safe training feature preprocessor."""
+    LOGGER.debug("Building preprocessor scale_numeric=%s", scale_numeric)
+    numeric_steps: list[tuple[str, Any]] = [
+        ("imputer", SimpleImputer(strategy="median"))
+    ]
+    if scale_numeric:
+        numeric_steps.append(("scaler", StandardScaler()))
+
+    education = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            (
+                "encoder",
+                OrdinalEncoder(
+                    categories=[list(EDUCATION_ORDER)],
+                    handle_unknown="use_encoded_value",
+                    unknown_value=-1,
+                ),
+            ),
+        ]
+    )
+    skills = CountVectorizer(token_pattern=r"[^|]+", lowercase=False, binary=True)
+
+    return ColumnTransformer(
+        transformers=[
+            ("nominal", one_hot_encoder(), list(NOMINAL_FEATURES)),
+            ("education", education, list(ORDINAL_FEATURES)),
+            ("numeric", Pipeline(steps=numeric_steps), list(NUMERIC_FEATURES)),
+            ("skills", skills, "required_skills"),
+        ],
+        remainder="drop",
+        sparse_threshold=0.0,
+        verbose_feature_names_out=True,
+    )
+
+
+__all__ = ["build_preprocessor"]
