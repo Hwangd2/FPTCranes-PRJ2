@@ -25,7 +25,7 @@ def select_best_model(
     definition = model_catalog()[selected_name]
     if selected_name == "Random Forest":
         parameters, tuning = tune_random_forest(train_df, folds)
-        estimator = RandomForestRegressor(random_state=SEED, n_jobs=-1, **parameters)
+        estimator = RandomForestRegressor(random_state=SEED, n_jobs=1, **parameters)
     elif selected_name == "Gradient Boosting":
         parameters, tuning = tune_gradient_boosting(train_df, folds)
         estimator = GradientBoostingRegressor(random_state=SEED, **parameters)

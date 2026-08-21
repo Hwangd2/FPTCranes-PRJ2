@@ -105,7 +105,7 @@ def best_model_selection_feature_importance_review(
         scoring="neg_mean_absolute_error",
         n_repeats=5,
         random_state=SEED,
-        n_jobs=-1,
+        n_jobs=1,
     )
     raw_importance = (
         pd.DataFrame(

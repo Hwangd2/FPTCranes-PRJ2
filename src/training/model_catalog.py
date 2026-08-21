@@ -24,7 +24,7 @@ def model_catalog() -> dict[str, ModelDefinition]:
                 min_samples_leaf=2,
                 max_features=0.8,
                 random_state=SEED,
-                n_jobs=-1,
+                n_jobs=1,
             ),
             False,
         ),

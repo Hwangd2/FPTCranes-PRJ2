@@ -46,7 +46,7 @@ def tune_random_forest(
         train_df,
         folds,
         candidates,
-        lambda params: RandomForestRegressor(random_state=SEED, n_jobs=-1, **params),
+        lambda params: RandomForestRegressor(random_state=SEED, n_jobs=1, **params),
     )
     best = results.iloc[0]
     parameters = {
