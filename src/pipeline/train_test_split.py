@@ -39,6 +39,9 @@ def train_test_split(
     LOGGER.info(
         "Temporal split prepared: development=%d locked_test=%d", len(dev), len(locked)
     )
+    LOGGER.debug(
+        "Split on raw cleaned df (not df_corr), total=%d", len(clean)
+    )
     dev[list(MODEL_FEATURES) + [TARGET, "posting_year", "posting_month"]].to_csv(
         paths.ml_ready / "train_raw_model_input.csv", index=False
     )
@@ -50,9 +53,12 @@ def train_test_split(
     )
 
     preprocessor = build_preprocessor(scale_numeric=True)
+    LOGGER.info("Fitting preprocessor on TRAIN partition only (%d rows)", len(dev))
     x_train = preprocessor.fit_transform(dev[list(MODEL_FEATURES)])
     x_test = preprocessor.transform(locked[list(MODEL_FEATURES)])
     feature_names = preprocessor.get_feature_names_out()
+    LOGGER.info("Encoded feature count: %d columns", len(feature_names))
+    LOGGER.debug("X_train shape=%s X_test shape=%s", x_train.shape, x_test.shape)
     pd.DataFrame({"encoded_feature": feature_names}).to_csv(
         paths.ml_ready / "08_encoded_feature_names.csv", index=False
     )

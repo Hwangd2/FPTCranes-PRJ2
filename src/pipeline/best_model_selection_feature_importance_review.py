@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+import json
 import logging
 
 import numpy as np
@@ -88,6 +89,11 @@ def best_model_selection_feature_importance_review(
     encoded_importance = encoded_importance.sort_values(
         "importance", ascending=False
     ).reset_index(drop=True)
+    top3 = encoded_importance.head(3)
+    LOGGER.info(
+        "Top-3 encoded features: %s",
+        ", ".join(f"{r['encoded_feature']}={r['importance']:.4f}" for _, r in top3.iterrows()),
+    )
     encoded_importance.to_csv(
         paths.best / "10_encoded_feature_importance.csv", index=False
     )
@@ -129,8 +135,37 @@ def best_model_selection_feature_importance_review(
         paths.best,
     )
 
+    caveats = {
+        "two_feature_concentration": (
+            "job_category and years_of_experience account for over 92% of total "
+            "feature importance. The model is essentially a two-feature model."
+        ),
+        "synthetic_signal_warning": (
+            "years_of_experience carries a contradictory, likely-synthetic signal "
+            "(Stage 6 finding). Its importance must be reported as model reliance, "
+            "not causal salary evidence."
+        ),
+        "no_causal_claims": (
+            "Correlation and importance values are diagnostic association, not "
+            "causal proof. No real-world salary-driver claim is permitted from "
+            "this dataset."
+        ),
+        "honest_r2_framing": (
+            "The strong R-squared is honestly reported as 'good fit to this "
+            "specific dataset', never as 'AI salaries are explained by...'."
+        ),
+        "svm_structural_mismatch": (
+            "SVR under-performs due to RBF distance in ~100-dimensional sparse "
+            "one-hot-encoded space. This is a structural mismatch, not a tuning bug."
+        ),
+    }
+    caveats_path = paths.best / "10_interpretation_caveats.json"
+    caveats_path.write_text(json.dumps(caveats, indent=2), encoding="utf-8")
+    LOGGER.info("Interpretation caveats written to %s", caveats_path.name)
+
     out_of_fold_errors = out_of_fold_absolute_errors(dev, folds, selection)
     interval_q90 = float(np.quantile(out_of_fold_errors, 0.90))
+    LOGGER.info("90th percentile prediction interval: ±%.0f USD", interval_q90)
     return (
         selected_name,
         best_pipeline,
