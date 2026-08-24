@@ -1,21 +1,18 @@
 <!--
 Sync Impact Report
-- Version change: template (unversioned) -> 1.0.0
-- Modified principles:
-  - Template Principle 1 -> I. Data Integrity and Leakage Safety
-  - Template Principle 2 -> II. Reproducible Staged Artifacts
-  - Template Principle 3 -> III. Evidence-First Verification (NON-NEGOTIABLE)
-  - Template Principle 4 -> IV. Offline Training, Read-Only Reporting
-  - Template Principle 5 -> V. Honest Interpretation and Secure Defaults
+- Version change: 1.0.0 -> 1.1.0
+- Modified principles: none renamed
 - Added sections:
-  - Scientific and Operational Constraints
-  - Development Workflow and Quality Gates
+  - VI. Model Evaluation Documentation (new principle)
+  - Model Evaluation Evidence Contract (under Scientific and Operational
+    Constraints)
 - Removed sections: none
 - Templates requiring updates:
-  - ✅ .specify/templates/plan-template.md
-  - ✅ .specify/templates/spec-template.md
-  - ✅ .specify/templates/tasks-template.md
-  - ✅ README.md
+  - ✅ .specify/templates/plan-template.md (no update needed; constitution
+    checks already reference evaluation evidence)
+  - ✅ .specify/templates/spec-template.md (no update needed)
+  - ✅ .specify/templates/tasks-template.md (no update needed)
+  - ✅ README.md (no stale references)
   - ✅ Command templates: directory not present; no stale references found
 - Follow-up TODOs: none
 -->
@@ -73,6 +70,49 @@ credentials MUST be identified as local-only; shared deployments MUST obtain cre
 material from secrets or environment configuration and MUST NOT commit plaintext secrets.
 User-controlled inputs and loaded artifact values MUST be validated before use.
 
+### VI. Model Evaluation Documentation
+
+Every model evaluation deliverable MUST document the complete chain from
+train–test split through final selection with traceable, artifact-backed
+evidence. The following sub-requirements are mandatory:
+
+1. **Split specification.** The temporal split identity (locked test =
+   2026-03, ~298 rows; development = pre-2026-03, ~1,201 rows) MUST be
+   stated. The split MUST be performed on the raw cleaned DataFrame, not on
+   an encoded correlation view. Preprocessing MUST be fitted inside the
+   pipeline, never before the split.
+2. **Candidate ladder.** At minimum five models (Dummy median floor, Linear
+   Regression, Ridge, Random Forest, Gradient Boosting) plus optional SVR
+   MUST be trained on identical splits. Each candidate MUST report MAE,
+   RMSE, R², and MedAE on both temporal CV folds and the locked test.
+3. **Hyperparameter tuning.** Tuning MUST be nested inside development
+   temporal folds only; the locked test MUST NOT be touched until all
+   selection decisions are frozen. Every trial MUST log parameters,
+   fold IDs, seed, and metrics.
+4. **Best model selection.** The winner (currently Random Forest,
+   locked-test R² = 0.803, MAE = 14,961 USD, MedAE = 4,467 USD) MUST be
+   selected by lowest mean temporal CV MAE before the locked test is opened.
+   When candidates overlap within fold variance, the simpler model MUST be
+   preferred.
+5. **Feature importance.** Both encoded-feature importance (from the
+   estimator) and raw-feature-family permutation importance (on the locked
+   test) MUST be reported. The concentration of job_category (~59%) and
+   years_of_experience (~28%) MUST be called out explicitly.
+6. **Interpretation caveats.** The documentation MUST state that
+   years_of_experience carries a contradictory, likely-synthetic signal;
+   that importance values are model reliance, not causal evidence; that R²
+   is a fit metric for this dataset, not a causal salary explanation; and
+   that SVM under-performance is a structural mismatch (RBF distance in
+   ~100-d sparse OHE space), not a tuning failure.
+7. **Uncertainty communication.** Every prediction summary MUST include a
+   practical interval (current 90th-percentile half-width ± 32,216 USD)
+   or MedAE rather than bare point estimates.
+8. **Artifact traceability.** Results MUST cite the specific output files
+   (`outputs/03_model_comparison/`, `outputs/04_best_model_and_feature_importance/`,
+   `artifacts/metadata.json`, `artifacts/model_bundle.joblib`) and MUST be
+   reproducible from the versioned source dataset, pinned dependencies,
+   and recorded seeds.
+
 ## Scientific and Operational Constraints
 
 - Python, the offline pipeline, generated file artifacts, and Streamlit are the established
@@ -84,6 +124,14 @@ User-controlled inputs and loaded artifact values MUST be validated before use.
   published internal contract. Compatibility changes MUST be explicit and tested.
 - Generated evidence MUST retain units, partition names, model-selection basis, and enough
   provenance for a reviewer to trace a displayed claim back to its source artifact.
+- Model evaluation documentation MUST reference the latest pipeline outputs:
+  comparison table (`09_model_comparison_temporal_cv.csv`), locked-test metrics
+  (`10_final_locked_test_metrics.csv`), encoded importance
+  (`10_encoded_feature_importance.csv`), raw permutation importance
+  (`10_raw_feature_permutation_importance.csv`), interpretation caveats
+  (`10_interpretation_caveats.json`), and tuning results
+  (`10_best_model_tuning_results.csv`). Stale or manually-typed numbers that
+  contradict these files are prohibited.
 - Runtime failures MUST identify the missing or invalid input and the command needed to
   regenerate it. Silent fallbacks that alter scientific meaning are prohibited.
 
@@ -120,4 +168,4 @@ acceptable only when its necessity and simpler rejected alternative are document
 commands and project-specific guidance remain in `README.md` and `AGENTS.md`, but neither may
 override this constitution.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-19 | **Last Amended**: 2026-08-19
+**Version**: 1.1.0 | **Ratified**: 2026-08-19 | **Last Amended**: 2026-08-24
