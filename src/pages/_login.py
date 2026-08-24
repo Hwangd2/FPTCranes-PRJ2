@@ -3,9 +3,12 @@ from __future__ import annotations
 import hmac
 import os
 
+from rich.console import Console
+
 import streamlit as st
 from src.utils.auth import password_hash, resolve_auth_settings
 
+logger = Console()
 
 def require_authentication() -> None:
     """Stop the current rerun until the user authenticates."""
@@ -45,7 +48,7 @@ def require_authentication() -> None:
                 "variables before shared deployment.",
                 icon=":material/info:",
             )
-
+        logger.log("login: user=%s, hash=%s", username, password)
         if submitted:
             username_matches = hmac.compare_digest(username, settings.username)
             password_matches = hmac.compare_digest(

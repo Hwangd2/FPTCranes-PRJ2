@@ -7,7 +7,6 @@ Run from the project root with:
 from __future__ import annotations
 
 import streamlit as st
-
 from src.components._nav import build_navigation, render_sidebar_context
 from src.components._styles import configure_page
 from src.config import Config
