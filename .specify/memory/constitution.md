@@ -1,15 +1,12 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 -> 1.1.0
-- Modified principles: none renamed
-- Added sections:
-  - VI. Model Evaluation Documentation (new principle)
-  - Model Evaluation Evidence Contract (under Scientific and Operational
-    Constraints)
+- Version change: 1.1.0 -> 1.1.1
+- Modified principles:
+  - VI. Model Evaluation Documentation: added sub-requirement 9 (visualization)
+- Added sections: none
 - Removed sections: none
 - Templates requiring updates:
-  - ✅ .specify/templates/plan-template.md (no update needed; constitution
-    checks already reference evaluation evidence)
+  - ✅ .specify/templates/plan-template.md (no update needed)
   - ✅ .specify/templates/spec-template.md (no update needed)
   - ✅ .specify/templates/tasks-template.md (no update needed)
   - ✅ README.md (no stale references)
@@ -112,6 +109,12 @@ evidence. The following sub-requirements are mandatory:
    `artifacts/metadata.json`, `artifacts/model_bundle.joblib`) and MUST be
    reproducible from the versioned source dataset, pinned dependencies,
    and recorded seeds.
+9. **Visualization.** The documentation MUST embed generated charts for
+   model comparison (CV MAE bar chart, CV R² bar chart), locked-test
+   diagnostics (actual vs predicted scatter, residual plot), and feature
+   importance (encoded importance bar chart, raw permutation importance
+   bar chart). Charts MUST be referenced from the pipeline output
+   directories, not manually recreated.
 
 ## Scientific and Operational Constraints
 
@@ -168,4 +171,4 @@ acceptable only when its necessity and simpler rejected alternative are document
 commands and project-specific guidance remain in `README.md` and `AGENTS.md`, but neither may
 override this constitution.
 
-**Version**: 1.1.0 | **Ratified**: 2026-08-19 | **Last Amended**: 2026-08-24
+**Version**: 1.1.1 | **Ratified**: 2026-08-19 | **Last Amended**: 2026-08-24

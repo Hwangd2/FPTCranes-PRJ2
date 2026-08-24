@@ -114,6 +114,10 @@ Selected hyperparameters: `n_estimators=400`, `min_samples_leaf=2`,
 
 ### 9.4. Model Comparison — Temporal Cross-Validation Results
 
+![Model Comparison — CV MAE](../outputs/03_model_comparison/model_comparison_cv_mae.png)
+
+![Model Comparison — CV R²](../outputs/03_model_comparison/model_comparison_cv_r2.png)
+
 | Rank | Model | CV MAE mean (USD) | CV MAE std | CV RMSE mean (USD) | CV RMSE std | CV R² mean | CV R² std | CV MedAE mean (USD) |
 |------|-------|-------------------|-----------|--------------------|-----------|-----------|-----------|--------------------|
 | 1 | Random Forest | 12,554 | 3,180 | 23,018 | 6,755 | 0.877 | 0.050 | 4,908 |
@@ -162,6 +166,7 @@ reported without inspecting feature importance.
 locked test opened once after all selection and tuning decisions were frozen.
 
 When Random Forest and Gradient Boosting are compared:
+
 - Random Forest: CV MAE = 12,554 USD (std 3,180)
 - Gradient Boosting: CV MAE = 13,372 USD (std 1,399)
 
@@ -172,6 +177,10 @@ via direct feature importance).
 
 ### 10.2. Locked-Test Performance
 
+![Actual vs Predicted — Locked Test](../outputs/04_best_model_and_feature_importance/actual_vs_predicted_locked_test.png)
+
+![Locked-Test Residuals](../outputs/04_best_model_and_feature_importance/locked_test_residuals.png)
+
 | Metric | Value |
 |--------|-------|
 | MAE | 14,961 USD |
@@ -181,6 +190,8 @@ via direct feature importance).
 | Selection basis | Lowest mean temporal CV MAE on development period; locked test opened once after selection/tuning. |
 
 ### 10.3. Encoded Feature Importance (Top 10)
+
+![Top 25 Encoded Feature Importance](../outputs/04_best_model_and_feature_importance/top25_encoded_feature_importance.png)
 
 From the fitted Random Forest estimator (impurity-based importance):
 
@@ -202,6 +213,8 @@ From the fitted Random Forest estimator (impurity-based importance):
 importance. The model is essentially a two-feature model.
 
 ### 10.4. Raw-Feature Permutation Importance (Locked Test)
+
+![Raw Feature Permutation Importance](../outputs/04_best_model_and_feature_importance/raw_feature_permutation_importance.png)
 
 Permutation importance measures the increase in MAE when a feature family's
 values are randomly shuffled on the locked test set:
