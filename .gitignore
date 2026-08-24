@@ -1,6 +1,1 @@
-artifacts/
-outputs/
-graphify-out/
-.streamlit/secrets.toml
-__pycache__/
-*.py[cod]
+﻿.venv/
