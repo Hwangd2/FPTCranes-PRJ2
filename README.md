@@ -1,81 +1,141 @@
-# AI Job Market Salary Prediction
+# FPTCranes-PRJ2 Optimized — AI Job Market Salary Prediction
 
-This project implements the 12-stage workflow from the supplied **Document_QD Project KHDL&AI** and regenerates all requested evidence packs from `data/ai_jobs_market_2025_2026.csv`.
+Production-style academic project for **AI Job Market Salary Prediction** using a 12-stage, data-quality-first and leakage-safe workflow.
+
+This optimized package keeps the requested Streamlit presentation structure while incorporating the stronger output/evidence coverage used in `Project_HKII_G3`.
+
+## Streamlit menu
+
+1. Data basic clean — Stages 01–05
+2. Data ready for ML — Stages 06–08
+3. Model comparison — Stage 09
+4. Best model — Stages 10–11
+5. Salary prediction — Stage 12
+6. 12-stage pipeline
+
+## Scientific / ML controls
+
+- Locked temporal test: **March 2026**
+- Target-aware diagnostics use **DEV only** before final-test opening
+- TRAIN/DEV-only preprocessing and 93-token skill vocabulary
+- Explicit feature leakage policy and ablation plan
+- Pearson + Spearman diagnostics, numeric VIF, pairwise redundancy audit
+- Expanding-window temporal CV
+- Dummy baseline + five regression families
+- Bounded model tuning
+- Locked-test MAE / RMSE / R² / MedAE
+- Encoded importance + raw-family permutation importance
+- Bundle reload-equivalence deployment gate
+- Streamlit inference uses the same serialized model bundle
+
+## Current verified run
+
+- Raw rows: 1,500
+- Clean rows: 1,499
+- Development rows: 1,201
+- Locked-test rows: 298
+- Selected model: Random Forest
+- Locked-test MAE: ~15,054 USD
+- Locked-test RMSE: ~29,993 USD
+- Locked-test R²: ~0.801
+- Locked-test MedAE: ~4,440 USD
+- Automated tests: 13/13 passed
+- Generated analytical charts: 27
+
+## Project structure
+
+```text
+FPTCranes-PRJ2_Optimized/
+├── config/
+│   └── project.yaml
+├── data/raw/
+│   └── ai_jobs_market_2025_2026.csv
+├── src/
+│   ├── builder/
+│   ├── components/
+│   ├── constants/
+│   ├── pages/
+│   ├── pipeline/
+│   ├── training/
+│   └── utils/
+├── outputs/
+│   ├── 01_data_basic_clean/
+│   ├── 02_data_ready_for_machine_learning/
+│   ├── 03_model_comparison/
+│   ├── 04_best_model_and_feature_importance/
+│   └── 05_salary_prediction/
+├── artifacts/
+├── assets/
+├── reports/
+├── tests/
+├── pipeline.py
+├── pineline.py
+├── streamlit.py
+└── requirements.txt
+```
 
 ## Run
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 python pipeline.py
+python -m pytest -q
 streamlit run streamlit.py
 ```
 
-Pipeline progress uses Rich terminal logging. `INFO` is the default and shows each
-stage, model family, tuning candidate, and final evaluation. Use `DEBUG` for fold
-sizes, metrics, preprocessing details, and generated artifact paths:
+Backward-compatible alias:
 
 ```bash
-python pipeline.py --log-level DEBUG
+python pineline.py
 ```
 
-## Streamlit login
+## Local Streamlit demo login
 
-Local demo only: `admin / AIJob2026!`
+Default academic demo credentials are in `config/project.yaml`:
 
-For shared deployment, override the demo credential with either Streamlit secrets (`auth.username`, `auth.password_sha256`) or environment variables:
+- username: `admin`
+- password: `AIJob2026!`
 
-- `AIJOB_APP_USER`
-- `AIJOB_APP_PASSWORD_SHA256`
+Override them before shared deployment with environment variables:
 
-## Output packs
+```bash
+AI_JOB_USER=your_user
+AI_JOB_PASSWORD=your_password
+```
 
-1. `outputs/01_data_basic_clean/`
-2. `outputs/02_data_ready_for_machine_learning/`
-3. `outputs/03_model_comparison/`
-4. `outputs/04_best_model_and_feature_importance/`
-5. `outputs/05_salary_prediction/`
+## Main output charts shown in Streamlit
 
-The final serialized inference bundle is in `artifacts/model_bundle.joblib`, and the checked-in
-presentation report is in `docs/AI_Job_Market_Salary_Prediction_Report.docx`.
+### Data basic clean
+- Stage 02 target distribution
+- Stage 03 missingness and high-cardinality review
+- Stage 05 logic issue rates
+- Experience-level / years-of-experience contradiction charts
+- Salary by job category
+- Salary range integrity
 
-## Scientific boundary
+### Data ready for ML
+- Feature governance mix
+- Top target correlations
+- Pearson vs Spearman
+- Numeric VIF
+- Top 30 skills
+- Temporal split timeline and split donut
 
-The supplied snapshot contains contradictory and synthetic-looking structure. The model is suitable for academic supervised-regression and controlled scenario exploration; importance values must not be interpreted as causal real-world salary economics without external validation.
+### Model comparison
+- CV MAE
+- CV R²
+- Fold-by-fold MAE stability
+- Feature-family ablation
+- Feature-importance drift
 
-## Development governance
+### Best model
+- Actual vs predicted
+- Residual distribution
+- Raw feature-family permutation importance
+- Encoded feature importance
 
-All specifications, plans, implementation tasks, and reviews are governed by
-`.specify/memory/constitution.md`. In particular, changes must preserve temporal leakage
-safety, reproducible artifacts, failing-first verification, offline training, read-only
-Streamlit reporting, honest interpretation, and secure credential handling.
-
-## Streamlit structure and theme
-
-`streamlit.py` is the authenticated application router. Page scripts live in `src/pages/`,
-shared UI elements in `src/components/`, and testable artifact, authentication, formatting,
-and prediction helpers in `src/utils/`.
-
-The default theme is light and is configured in `.streamlit/config.toml`. Light and dark
-palettes are both defined, so users can switch mode from Streamlit's Settings menu. To make
-dark mode the deployment default, change `theme.base` from `"light"` to `"dark"` and restart
-the app. The UI uses native Streamlit elements so both palettes remain readable.
-
-## Offline pipeline structure
-
-`pipeline.py` remains the project-root command wrapper. `pineline.py` is a backward-compatible
-alias, while the implementation lives in the `src.pipeline` package:
-
-- `src/constants/pipeline.py`: immutable feature, split, stage, and visualization constants.
-- `src/models/pipeline.py`: dataclasses for paths, model definitions, and training selection.
-- `src/builder/`: generic project path construction.
-- `src/training/`: one focused module per training operation, including model catalog,
-  preprocessing and model-pipeline construction, temporal folds, comparison, tuning,
-  selection, metrics, and out-of-fold errors.
-- `src/pipeline/__init__.py`: the offline orchestrator and Stage 1 data-loading workflow; it
-  defines but does not invoke `main()`.
-- `src/pipeline/`: one descriptively named module per remaining stage, such as
-  `data_quality_check.py` and `model_training_comparison.py`; each module's public function
-  has the same name as its file.
-
-Each run writes generated asset images beneath `assets/output-<UTC timestamp>/`. The dashboard
-selects the newest timestamped pipeline diagram and retains legacy fallbacks for older checkouts.
+### Salary prediction
+- Interactive serving form
+- Empirical prediction interval
+- OOD / review flags
+- Locked-test serving evidence charts

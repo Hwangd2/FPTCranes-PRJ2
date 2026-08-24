@@ -1,5 +1,4 @@
-"""Project-root command wrapper for the :mod:`src.pipeline` package."""
-
+"""Primary CLI entry point."""
 from src.pipeline import main
 
 if __name__ == "__main__":

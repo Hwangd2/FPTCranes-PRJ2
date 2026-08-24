@@ -1,37 +1,7 @@
 [theme]
 base = "light"
-baseRadius = "medium"
-buttonRadius = "medium"
-showWidgetBorder = true
-showSidebarBorder = true
-
-[theme.light]
-primaryColor = "#4338CA"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F4F6FA"
-textColor = "#172033"
-borderColor = "#D8DEEA"
-blueColor = "#2563EB"
-greenColor = "#15803D"
-yellowColor = "#A16207"
-redColor = "#B91C1C"
-
-[theme.dark]
-primaryColor = "#A5B4FC"
-backgroundColor = "#111827"
-secondaryBackgroundColor = "#1F2937"
-textColor = "#F3F4F6"
-borderColor = "#374151"
-blueColor = "#60A5FA"
-greenColor = "#4ADE80"
-yellowColor = "#FACC15"
-redColor = "#F87171"
-
-[theme.light.sidebar]
-backgroundColor = "#F4F6FA"
-
-[theme.dark.sidebar]
-backgroundColor = "#0B1220"
-
-[server]
-headless = true
+primaryColor = "#8C82C8"
+backgroundColor = "#FCFBFF"
+secondaryBackgroundColor = "#F4F1FA"
+textColor = "#26324A"
+font = "sans serif"

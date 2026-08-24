@@ -1,48 +1,27 @@
+from __future__ import annotations
+
 from pathlib import Path
-
-
-def resolve_latest_pipeline_image(asset_dir: Path, doc_dir: Path) -> Path:
-    """Resolve the newest timestamped pipeline diagram with legacy fallbacks."""
-    timestamped = sorted(
-        (
-            directory / "12_stage_pipeline.png"
-            for directory in asset_dir.glob("output-*")
-            if directory.is_dir()
-        ),
-        reverse=True,
-    )
-    return next(
-        (
-            path
-            for path in (
-                *timestamped,
-                asset_dir / "12_stage_pipeline.png",
-                doc_dir / "12_stage_pipeline.png",
-            )
-            if path.is_file()
-        ),
-        asset_dir / "output-latest" / "12_stage_pipeline.png",
-    )
+import json
+import yaml
 
 
 class Config:
-    ROOT_DIR = Path(__file__).parent.parent
-    STREAMLIT_DIR = ROOT_DIR / ".streamlit"
-    ASSET_DIR = ROOT_DIR / "assets"
-    DATA_DIR = ROOT_DIR / "data"
+    ROOT_DIR = Path(__file__).resolve().parents[1]
+    CONFIG_PATH = ROOT_DIR / "config" / "project.yaml"
+    DATA_DIR = ROOT_DIR / "data" / "raw"
     OUTPUT_DIR = ROOT_DIR / "outputs"
     ARTIFACT_DIR = ROOT_DIR / "artifacts"
+    ASSET_DIR = ROOT_DIR / "assets"
     REPORT_DIR = ROOT_DIR / "reports"
-    DOC_DIR = ROOT_DIR / "docs"
-    PIPELINE_IMAGE = resolve_latest_pipeline_image(ASSET_DIR, DOC_DIR)
-    PRESENTATION_REPORT = next(
-        (
-            path
-            for path in (
-                REPORT_DIR / "AI_Job_Market_Salary_Prediction_Report.docx",
-                DOC_DIR / "AI_Job_Market_Salary_Prediction_Report.docx",
-            )
-            if path.is_file()
-        ),
-        REPORT_DIR / "AI_Job_Market_Salary_Prediction_Report.docx",
-    )
+
+    @classmethod
+    def load(cls) -> dict:
+        with cls.CONFIG_PATH.open("r", encoding="utf-8") as f:
+            return yaml.safe_load(f)
+
+    @classmethod
+    def report_index(cls) -> dict:
+        path = cls.OUTPUT_DIR / "report_index.json"
+        if not path.exists():
+            return {}
+        return json.loads(path.read_text(encoding="utf-8"))

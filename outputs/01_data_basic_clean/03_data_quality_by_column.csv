@@ -1,0 +1,26 @@
+column,dtype,missing_count,missing_pct,hidden_missing_tokens,unique_count
+job_id,str,0,0.0,0,1500
+job_title,str,0,0.0,0,25
+AI Engineering,str,0,0.0,0,13
+experience_level,str,0,0.0,0,4
+years_of_experience,int64,0,0.0,0,15
+education_required,str,0,0.0,0,5
+annual_salary_usd,int64,0,0.0,0,248
+salary_min_usd,int64,0,0.0,0,17
+salary_max_usd,int64,0,0.0,0,16
+city,str,0,0.0,0,20
+country,str,0,0.0,0,14
+remote_work,str,0,0.0,0,3
+company_size,str,0,0.0,0,5
+industry,str,0,0.0,0,12
+required_skills,str,0,0.0,0,1500
+ai_salary_premium_pct,float64,0,0.0,0,151
+demand_score,int64,0,0.0,0,20
+demand_growth_yoy_pct,float64,0,0.0,0,565
+benefits_score_10,int64,0,0.0,0,5
+posting_year,int64,0,0.0,0,2
+posting_month,int64,0,0.0,0,12
+is_senior,int64,0,0.0,0,2
+is_remote_friendly,int64,0,0.0,0,2
+is_llm_role,int64,0,0.0,0,2
+salary_tier,str,0,0.0,0,5
