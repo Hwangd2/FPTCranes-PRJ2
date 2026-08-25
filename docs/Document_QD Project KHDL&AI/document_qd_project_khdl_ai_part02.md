@@ -27,12 +27,22 @@ Xây vocabulary trên tập TRAIN (fit vocabulary on TRAIN): Tạo danh sách k�
 **7.4.**** ****Scaling **(Thay đổi quy mô):
 - StandardScaler for Ridge/ElasticNet/SVR; not required for tree ensembles. Use model-specific pipelines rather than one universal preprocessing compromise.
 **7.5.**** ****Feature Selection:**
-- Bắt đầu bằng Lasso (L1 Regularization) để loại bỏ nhanh các biến rác vì nó nhanh và đơn giản.
-- Sau đó, để độ chính xác cao hơn và hiểu sâu về sự tương tác giữa các kỹ năng, sử dụng RFE (Recursive Feature Elimination) kết hợp với mô hình mạnh mẽ như Random Forest và SVM.
-- Tại sao cần dùng cho Dự án?
-Tránh "Lời nguyền đa chiều" (Curse of Dimensionality): Với hàng trăm kỹ năng AI khác nhau, nếu giữ lại tất cả, mô hình sẽ dễ bị quá khớp (overfitting) — tức là nó học thuộc lòng dữ liệu cũ nhưng dự báo sai cho ứng viên mới.
-Tăng khả năng giải thích (Interpretability): Một mô hình dự báo lương dựa trên 10 kỹ năng cốt lõi sẽ dễ dàng giải thích cho nhà tuyển dụng hoặc ứng viên hơn là một mô hình sử dụng 100 yếu tố hỗn tạp.
-Tối ưu hóa tài nguyên: Giảm số lượng đặc trưng giúp mô hình chạy nhanh hơn, tốn ít bộ nhớ hơn và dễ bảo trì hơn trong tương lai.
+- The project employs a strategic, two-phase approach to feature selection:
+  - **Phase 1:** Begin with Lasso (L1 Regularization) to quickly eliminate "garbage" variables due to its simplicity and computational efficiency.
+  - **Phase 2:** Subsequently, utilize Recursive Feature Elimination (RFE) paired with robust models like Random Forest and SVM to achieve higher accuracy and gain deeper insights into the interactions between specific skills.
+
+This combined strategy is designed to combat the "Curse of Dimensionality"—a phenomenon occurring when the number of features is excessively high relative to the sample size (1,500 rows in this dataset), causing data sparsity and making the model prone to learning random noise instead of actual patterns.
+
+- **Lasso (L1 Regularization - Embedded Method)**
+  - **Mechanism:** Lasso incorporates a penalty term proportional to the sum of the absolute values of the coefficients into the loss function. This mathematical property shrinks the coefficients of non-contributing or redundant variables to exactly zero, effectively performing automated feature selection during model training.
+  - **Application Strategy:** Use Lasso as an initial automated filtering step to prune "weak" features (those with an R2<0.01) among the dozens of AI skill columns.
+  - **Primary Benefit:** Significantly increases Interpretability by highlighting the most influential predictors.
+
+- **RFE (Recursive Feature Elimination - Wrapper Method)**
+  - **Mechanism:** RFE works by training a base estimator (e.g., Random Forest), ranking features by their calculated importance, and iteratively removing the weakest features until the optimal subset remains.
+  - **Primary Benefit:** Provides Resource Optimization by reducing dimensionality, leading to faster training times, lower memory consumption, and simplified maintenance.
+  - **Technical Advantage:** Unlike Lasso, RFE is more effective at capturing feature interactions—such as the synergistic relationship between Job Title and Required Skills.
+  - **Project Strategy:** For this AI market dataset, RFE will be integrated with TimeSeriesSplit (Expanding Window) to ensure that the selected features remain stable and predictive over the project's temporal range (Jan 2025 – Mar 2026).
 **7.6. Feature Construction:**
 - Feature Construction (Xây dựng đặc trưng mới):
 Tạo biến "Salary-to-Experience Ratio" để hiểu giá trị của một năm kinh nghiệm trong các mảng AI khác nhau.
