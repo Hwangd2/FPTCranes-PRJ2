@@ -1,55 +1,43 @@
 from __future__ import annotations
 
-import json
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
+import hashlib
+import json
 
-import joblib
 import pandas as pd
 
 
-@lru_cache(maxsize=128)
-def _read_csv(path: str, modified_ns: int) -> pd.DataFrame:
-    del modified_ns
-    return pd.read_csv(path)
-
-
-@lru_cache(maxsize=128)
-def _read_json(path: str, modified_ns: int) -> dict[str, Any]:
-    del modified_ns
-    with Path(path).open("r", encoding="utf-8") as file:
-        value = json.load(file)
-    if not isinstance(value, dict):
-        raise ValueError(f"Expected a JSON object in {path}")
-    return value
-
-
-@lru_cache(maxsize=4)
-def _load_model(path: str, modified_ns: int) -> Any:
-    del modified_ns
-    return joblib.load(path)
-
-
-def load_csv(path: Path) -> pd.DataFrame:
-    """Load an optional CSV and invalidate the cache when the file changes."""
-    if not path.is_file():
+def read_csv(path: Path) -> pd.DataFrame:
+    if not path.exists():
         return pd.DataFrame()
-    resolved = path.resolve()
-    return _read_csv(str(resolved), resolved.stat().st_mtime_ns)
+    return pd.read_csv(path, low_memory=False)
 
 
-def load_json(path: Path) -> dict[str, Any]:
-    """Load an optional JSON object and invalidate the cache when it changes."""
-    if not path.is_file():
+def save_csv(df: pd.DataFrame, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(path, index=False)
+
+
+def read_json(path: Path) -> dict[str, Any]:
+    if not path.exists():
         return {}
-    resolved = path.resolve()
-    return _read_json(str(resolved), resolved.stat().st_mtime_ns)
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
-def load_model(path: Path) -> Any:
-    """Load a required serialized model with file-aware resource caching."""
-    if not path.is_file():
-        raise FileNotFoundError(path)
-    resolved = path.resolve()
-    return _load_model(str(resolved), resolved.stat().st_mtime_ns)
+def save_json(obj: Any, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(obj, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+
+
+def sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+import pandas as pd
+
+def load_csv(file_path):
+    return pd.read_csv(file_path)

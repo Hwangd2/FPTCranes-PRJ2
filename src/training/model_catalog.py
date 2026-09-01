@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import logging
+from dataclasses import dataclass
+from typing import Callable, Any
 
 from sklearn.dummy import DummyRegressor
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
@@ -8,9 +9,6 @@ from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.svm import SVR
 
 from src.constants import SEED
-from src.models import ModelDefinition
-
-LOGGER = logging.getLogger("ml_pipeline.training")
 
 
 def model_catalog() -> dict[str, ModelDefinition]:
@@ -26,18 +24,18 @@ def model_catalog() -> dict[str, ModelDefinition]:
         ModelDefinition(
             "Random Forest",
             lambda: RandomForestRegressor(
-                n_estimators=300,
+                n_estimators=80,
                 min_samples_leaf=2,
                 max_features=0.8,
                 random_state=SEED,
-                n_jobs=-1,
+                n_jobs=1,
             ),
             False,
         ),
         ModelDefinition(
             "Gradient Boosting",
             lambda: GradientBoostingRegressor(
-                n_estimators=200,
+                n_estimators=120,
                 learning_rate=0.05,
                 max_depth=2,
                 loss="huber",

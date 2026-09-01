@@ -42,7 +42,7 @@ def train_and_eval(X, y, random_state=42):
     return score, y_test, y_pred, residuals, model
 
 def ablation_study():
-    file_path = "data/ai_jobs_market_2025_2026.csv"
+    file_path = "data/raw/ai_jobs_market_2025_2026.csv"
     df = load_data(file_path)
     df = df.rename(columns={'AI Engineering': 'job_category'})
     target = df["annual_salary_usd"]

@@ -1,38 +1,38 @@
-"""Authenticated, read-only Streamlit router for the salary evidence packs.
-
-Run from the project root with:
-    streamlit run streamlit.py
-"""
-
 from __future__ import annotations
 
 import streamlit as st
 from src.components._nav import build_navigation, render_sidebar_context
 from src.components._styles import configure_page
-from src.config import Config
-from src.pages._login import require_authentication
-from src.utils.artifacts import load_json
+from src.pages._nav import MENU
+from src.pages import _best_model, _data_clean, _data_ready, _model_comparison, _pipeline, _prediction
 
-configure_page()
-require_authentication()
 
-try:
-    metadata = load_json(Config.ARTIFACT_DIR / "metadata.json")
-except (OSError, ValueError) as error:
-    st.error(
-        f"The model metadata could not be read: {error}. Run `python pipeline.py` to "
-        "regenerate the evaluated artifacts.",
-        icon=":material/error:",
-    )
-    st.stop()
+def main() -> None:
+    configure_page()
+    require_login()
+    with st.sidebar:
+        st.markdown("### 💼 AI Job Market")
+        st.caption("Salary Prediction · 12-stage technical dashboard")
+        page = st.radio("Menu", MENU, label_visibility="collapsed")
+        st.markdown("---")
+        st.caption("Data-quality-first · leakage-safe · temporal locked test · same-bundle serving")
+        if st.button("Sign out", use_container_width=True):
+            st.session_state["authenticated"] = False
+            st.rerun()
 
-if not metadata:
-    st.error(
-        "Model metadata is missing. Run `python pipeline.py` before launching the dashboard.",
-        icon=":material/database_off:",
-    )
-    st.stop()
+    if page == MENU[0]:
+        _data_clean.render()
+    elif page == MENU[1]:
+        _data_ready.render()
+    elif page == MENU[2]:
+        _model_comparison.render()
+    elif page == MENU[3]:
+        _best_model.render()
+    elif page == MENU[4]:
+        _prediction.render()
+    else:
+        _pipeline.render()
 
-page = build_navigation()
-render_sidebar_context(metadata)
-page.run()
+
+if __name__ == "__main__":
+    main()

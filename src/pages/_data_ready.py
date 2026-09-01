@@ -4,10 +4,10 @@ import os
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-
-from src.components._header import page_header
+import pandas as pd
+from src.components._header import page_header, stage_intro
 from src.config import Config
-from src.utils.artifacts import load_csv
+from src.pages._common import evidence, guard, read_csv, read_json, show_image
 
 # Cấu hình header của trang
 page_header(
@@ -17,13 +17,13 @@ page_header(
 )
 
 output = Config.OUTPUT_DIR / "02_data_ready_for_machine_learning"
-split = load_csv(output / "08_split_summary.csv")
-correlation = load_csv(output / "07_train_encoded_feature_target_correlation.csv")
-policy = load_csv(output / "06_feature_policy.csv")
-feature_names = load_csv(output / "08_encoded_feature_names.csv")
+split = pd.read_csv(output / "08_split_summary.csv")
+correlation = pd.read_csv(output / "07_train_encoded_feature_target_correlation.csv")
+policy = pd.read_csv(output / "06_feature_policy.csv")
+feature_names = pd.read_csv(output / "08_encoded_feature_names.csv")
 
 # [ĐÃ FIX] Phục hồi dòng load data gốc bị xóa nhầm
-vocabulary = load_csv(output / "skill_vocabulary_train_only.csv")
+vocabulary = pd.read_csv(output / "skill_vocabulary_train_only.csv")
 
 # Xử lý an toàn để vẽ Chart
 skill_vocab_counts = vocabulary.copy()
