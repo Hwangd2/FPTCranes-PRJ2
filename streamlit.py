@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import streamlit as st
-from src.components._nav import build_navigation, render_sidebar_context
+
+from src.components._login import require_login
 from src.components._styles import configure_page
 from src.pages._nav import MENU
 from src.pages import _best_model, _data_clean, _data_ready, _model_comparison, _pipeline, _prediction

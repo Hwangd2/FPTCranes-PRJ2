@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import GradientBoostingRegressor
@@ -11,7 +12,6 @@ def load_data(filepath, target_column="annual_salary_usd"):
 
 def preprocess_features(df, use_cols=None, drop_cols=None):
     df = df.copy()
-    # Step 1: Drop columns that are not for training regardless of scenario
     trash_cols = [
         'job_id', 'salary_min_usd', 'salary_max_usd',
         'salary_tier', 'experience_level', 'required_skills'
@@ -19,16 +19,13 @@ def preprocess_features(df, use_cols=None, drop_cols=None):
     cols_to_drop = [col for col in trash_cols if col in df.columns]
     
     if use_cols is not None:
-        # Chỉ giữ lại các cột được chỉ định (nếu có) và loại bỏ cả cột rác nếu lỡ nằm trong use_cols
         use_cols_clean = [col for col in use_cols if col not in cols_to_drop]
         X = df[use_cols_clean]
     else:
-        # Loại bỏ annual_salary_usd và trash cols (cộng thêm drop_cols tùy kịch bản)
         X = df.drop(columns=['annual_salary_usd'] + cols_to_drop, errors="ignore")
         if drop_cols is not None:
-            # drop_cols có thể chứa cột bất kỳ cần loại (ví dụ ablation C/D)
             X = X.drop(columns=drop_cols, errors="ignore")
-    # Step 2: One-hot encode all remaining categorical variables (object dtypes)
+            
     X = pd.get_dummies(X, drop_first=False)
     return X
 
@@ -46,38 +43,43 @@ def ablation_study():
     df = load_data(file_path)
     df = df.rename(columns={'AI Engineering': 'job_category'})
     target = df["annual_salary_usd"]
-    feature_cols = [col for col in df.columns if col != "annual_salary_usd"]
 
-    # Model A: All features except trash columns (see preprocess_features)
+    # Chạy 4 Model
     X_A = preprocess_features(df)
     score_A, y_test_A, y_pred_A, res_A, model_A = train_and_eval(X_A, target)
     
-    # Model B: Only job_category and years_of_experience (after removing any trash cols)
-    keep_cols = []
-    for col in ['job_category', 'years_of_experience']:
-        if col in df.columns:
-            keep_cols.append(col)
+    keep_cols = [col for col in ['job_category', 'years_of_experience'] if col in df.columns]
     X_B = preprocess_features(df, use_cols=keep_cols)
     score_B, y_test_B, y_pred_B, res_B, model_B = train_and_eval(X_B, target)
 
-    # Model C: All features except job_category (and always except trash columns)
     drop_cols_C = ['job_category'] if 'job_category' in df.columns else []
     X_C = preprocess_features(df, drop_cols=drop_cols_C)
     score_C, y_test_C, y_pred_C, res_C, model_C = train_and_eval(X_C, target)
 
-    # Model D: All features except years_of_experience (and always except trash columns)
     drop_cols_D = ['years_of_experience'] if 'years_of_experience' in df.columns else []
     X_D = preprocess_features(df, drop_cols=drop_cols_D)
     score_D, y_test_D, y_pred_D, res_D, model_D = train_and_eval(X_D, target)
 
-    print("Ablation Study Results (GradientBoostingRegressor, R2 score):")
-    print(f"Model A (full features):              R2 = {score_A:.4f}")
-    print(f"Model B (job_category + YoE only):    R2 = {score_B:.4f}")
-    print(f"Model C (drop job_category):          R2 = {score_C:.4f}")
-    print(f"Model D (drop years_of_experience):   R2 = {score_D:.4f}")
+    # 1. ĐÓNG GÓI R2 THÀNH DATAFRAME VÀ XUẤT CSV CHO UI ĐỌC
+    results = [
+        {"Model": "Model A (full features)", "R2 Score": score_A},
+        {"Model": "Model B (job_category + YoE only)", "R2 Score": score_B},
+        {"Model": "Model C (drop job_category)", "R2 Score": score_C},
+        {"Model": "Model D (drop years_of_experience)", "R2 Score": score_D}
+    ]
+    results_df = pd.DataFrame(results)
+    
+    # Tạo thư mục nếu chưa có để chống sập
+    os.makedirs("outputs/03_model_comparison", exist_ok=True)
+    results_df.to_csv("outputs/03_model_comparison/ablation_results.csv", index=False)
+    
+    print("Saved ablation results to outputs/03_model_comparison/ablation_results.csv successfully!")
 
-    # Plot residuals for Model A
-    plot_residuals(y_test_A, y_pred_A, "residuals_model_A.png")
+    # 2. XUẤT ẢNH RESIDUALS VÀO ĐÚNG FOLDER CHO UI ĐỌC
+    os.makedirs("outputs/04_best_model_and_feature_importance", exist_ok=True)
+    plot_residuals(y_test_A, y_pred_A, "outputs/04_best_model_and_feature_importance/locked_test_residuals.png")
+    
+    print("Saved residuals plot to outputs/04_best_model_and_feature_importance/locked_test_residuals.png successfully!")
 
 def plot_residuals(y_true, y_pred, filename):
     residuals = y_true - y_pred

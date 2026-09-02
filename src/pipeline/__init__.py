@@ -39,6 +39,7 @@ from src.training.temporal_cv import monthly_temporal_folds, regression_metrics
 from src.training.tuning import tune_gradient_boosting, tune_random_forest
 from src.utils.artifacts import save_csv, save_json, sha256_file
 from src.utils.pipeline_plots import (
+    plot_experience_salary_dashboard,
     plot_ablation,
     plot_best_outputs,
     plot_cardinality,
@@ -51,15 +52,15 @@ from src.utils.pipeline_plots import (
     plot_model_comparison,
     plot_pearson_spearman,
     plot_pipeline_12,
-    plot_salary_by_experience_level,
+    plot_consistency_audit_dashboard,
     plot_salary_by_job_category,
-    plot_salary_by_years,
-    plot_salary_range_integrity,
+    plot_planned_ablation_dashboard,
+    #plot_salary_range_integrity,
     plot_skills,
     plot_target_distribution,
     plot_temporal_split,
     plot_vif,
-    plot_years_by_experience_level,
+
 )
 
 
@@ -489,10 +490,13 @@ def run_pipeline(data_path: Path | None = None, output_root: Path | None = None)
     )
     plot_logic_issue_rates(issues, paths.basic / "05_logic_issue_rates.png")
     plot_salary_by_job_category(by_domain, paths.basic / "05_salary_by_job_category.png")
-    plot_years_by_experience_level(clean, paths.basic / "05_years_by_experience_level.png")
+    """ plot_years_by_experience_level(clean, paths.basic / "05_years_by_experience_level.png")
     plot_salary_by_experience_level(dev, paths.basic / "05_salary_by_experience_level.png")
-    plot_salary_by_years(by_year, paths.basic / "05_salary_by_years_experience.png")
-    plot_salary_range_integrity(dev, paths.basic / "05_salary_range_vs_target.png")
+    plot_salary_by_years(by_year, paths.basic / "05_salary_by_years_experience.png") """
+    plot_experience_salary_dashboard(clean, by_level, by_year, paths.basic / "05_experience_salary_dashboard.png")
+    #plot_salary_range_integrity(dev, paths.basic / "05_salary_range_vs_target.png")
+    # Gọi hàm vẽ Dashboard Consistency (Ném data DEV vào để soi)
+    plot_consistency_audit_dashboard(clean, paths.basic / "05_salary_consistency_dashboard.png")
 
     # ------------------------------------------------------------------
     # STAGE 6 — FEATURE SELECTION & LEAKAGE PREVENTION
@@ -520,7 +524,11 @@ def run_pipeline(data_path: Path | None = None, output_root: Path | None = None)
             ]
         ),
         paths.ml_ready / "06_ablation_plan.csv",
+        
     )
+    # Render Mockup Dashboard 6 ô cho Stage 06
+    plot_planned_ablation_dashboard(paths.ml_ready / "06_ablation_dashboard.png")
+
     overlap = sorted(set(MODEL_FEATURES) & set(BLOCKED_FEATURES))
     if overlap:
         raise RuntimeError(f"Leakage gate failed: blocked fields entered X: {overlap}")

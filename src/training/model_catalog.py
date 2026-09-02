@@ -11,13 +11,21 @@ from sklearn.svm import SVR
 from src.constants import SEED
 
 
-def model_catalog() -> dict[str, ModelDefinition]:
-    """Return constructor-based definitions so every fit receives a fresh estimator."""
-    definitions = (
+@dataclass(frozen=True)
+class ModelDefinition:
+    name: str
+    factory: Callable[[], Any]
+    scale_numeric: bool
+    is_baseline: bool = False
+
+
+def model_catalog() -> list[ModelDefinition]:
+    return [
         ModelDefinition(
-            "Dummy (Median)",
+            "Dummy Median",
             lambda: DummyRegressor(strategy="median"),
             False,
+            True,
         ),
         ModelDefinition("Linear Regression", LinearRegression, True),
         ModelDefinition("Ridge Regression", lambda: Ridge(alpha=10.0), True),
@@ -48,10 +56,4 @@ def model_catalog() -> dict[str, ModelDefinition]:
             lambda: SVR(C=100.0, epsilon=0.1, gamma="scale"),
             True,
         ),
-    )
-    catalog = {definition.name: definition for definition in definitions}
-    LOGGER.info("Model catalog prepared: %d candidates (%s)", len(catalog), ", ".join(catalog))
-    return catalog
-
-
-__all__ = ["model_catalog"]
+    ]

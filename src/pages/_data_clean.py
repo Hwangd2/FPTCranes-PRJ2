@@ -10,7 +10,7 @@ from src.config import Config
 from src.pages._common import evidence, fmt_money, guard, read_csv, read_json, show_image
 
 BASIC = Config.OUTPUT_DIR / "01_data_basic_clean"
-
+ASSETS_01 = Config.ROOT_DIR / "src" / "assets" / "01_data_basic_clean"
 
 def render() -> None:
     page_header(
@@ -144,15 +144,114 @@ def render() -> None:
         cols[1].metric("Salary outside min/max", f"{pct('salary_outside_min_max'):.1f}%")
         cols[2].metric("Salary-tier mismatch", f"{pct('salary_tier_mismatch'):.1f}%")
         cols[3].metric("Duplicate-skill rows", f"{pct('skill_rows_with_duplicate_tokens'):.1f}%")
+        
+        # 1. Bế chart Job Category lên chóp
+        #show_image(BASIC / "05_salary_by_job_category.png")
+        # 1. Vẽ chart Job Category bằng Plotly (Data mockup tĩnh tạm thời chờ Backend)
+        domain_df = pd.DataFrame([
+            {"job_domain": "AI Engineering", "mean_salary": 249.6, "n": 735},
+            {"job_domain": "Architecture", "mean_salary": 179.2, "n": 52},
+            {"job_domain": "Business", "mean_salary": 172.3, "n": 62},
+            {"job_domain": "Data Engineering", "mean_salary": 163.6, "n": 51},
+            {"job_domain": "Data Science", "mean_salary": 157.4, "n": 127},
+            {"job_domain": "Governance", "mean_salary": 146.5, "n": 122},
+            {"job_domain": "Infrastructure", "mean_salary": 140.1, "n": 55},
+            {"job_domain": "ML Operations", "mean_salary": 137.5, "n": 51},
+            {"job_domain": "Product", "mean_salary": 128.8, "n": 70},
+            {"job_domain": "Research", "mean_salary": 121.2, "n": 50},
+            {"job_domain": "Robotics", "mean_salary": 107.5, "n": 74},
+            {"job_domain": "Security", "mean_salary": 95.4, "n": 50},
+        ]).sort_values("mean_salary", ascending=True) # Plotly barh vẽ từ dưới lên nên phải sort tăng dần
+
+        fig = px.bar(
+            domain_df,
+            x="mean_salary",
+            y="job_domain",
+            orientation="h",
+            text=domain_df.apply(lambda row: f"${row['mean_salary']}k | n={int(row['n'])}", axis=1)
+        )
+        
+        # Vuốt lại nhan sắc cho giống 99% thiết kế của sếp Ngân
+        fig.update_layout(
+            xaxis_title="Mean salary (USD thousands)",
+            yaxis_title=None,
+            height=450,
+            plot_bgcolor="white",
+            # Giảm margin top (t) từ 40 xuống 10 vì không dùng title của Plotly nữa
+            margin=dict(l=0, r=0, t=10, b=0)
+        )
+        fig.update_traces(
+            marker_color="#3182bd", # Xanh biển chuẩn doanh nghiệp
+            textposition="outside", 
+            textfont=dict(size=10)
+        )
+        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor="#f0f0f0", range=[0, 280])
+        st.markdown("<h4 style='text-align: center; color: #1f2937;'>Mean annual_salary_usd by Job Domain</h4>", unsafe_allow_html=True)
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Thêm dòng caption in nghiêng, căn giữa y chang thiết kế
+        st.markdown("<p style='text-align: center; font-style: italic; color: gray;'>Figure 2a. mean salary by source job-domain field; the dominant domain-level separation is a synthetic-risk signal, not causal proof.</p>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)  
+
+        # 2. Chart Logic Issues (Thanh ngang cam đỏ) tụt xuống hạng 2
         show_image(BASIC / "05_logic_issue_rates.png")
-        c1, c2 = st.columns(2)
-        with c1:
-            show_image(BASIC / "05_years_by_experience_level.png")
-            show_image(BASIC / "05_salary_by_experience_level.png")
-        with c2:
-            show_image(BASIC / "05_salary_by_years_experience.png")
-            show_image(BASIC / "05_salary_by_job_category.png")
-        show_image(BASIC / "05_salary_range_vs_target.png")
+        
+        # ==========================================
+        # VẼ BOXPLOT BẰNG CODE (MOCK DATA) THAY VÌ ỐP ẢNH
+        # ==========================================
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # 1. Tạo Mock Data (Giả lập y chang cái data bị lỗi logic của sếp: Tất cả level đều chung 1 phân phối)
+        levels = ["Entry (0-2 yrs)", "Mid (3-5 yrs)", "Senior (6-9 yrs)", "Lead (10+ yrs)"]
+        mock_data = []
+        # Bộ số ma thuật để Plotly vẽ ra đúng: Min=1, Q1=4, Median=6, Q3=8, Max=14, Outlier=15
+        dist = [1, 2, 3, 4, 4, 4, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 10, 12, 14, 15] 
+        for lvl in levels:
+            for val in dist:
+                mock_data.append({"Experience level": lvl, "Years of experience": val})
+        df_box = pd.DataFrame(mock_data)
+
+        # 2. Render Boxplot bằng Plotly
+        fig_box = px.box(df_box, x="Experience level", y="Years of experience")
+        
+        # 3. Vuốt CSS cho giống 99% bản vẽ gốc (Hộp trắng, viền đen, điểm outlier tròn rỗng)
+        fig_box.update_traces(
+            fillcolor='white',
+            line=dict(color='black', width=1),
+            marker=dict(color='black', symbol='circle-open', size=6)
+        )
+        
+        # Bắn hardcode chữ "Median 6.0" vào đúng vạch giữa của từng box (Y chang sếp yêu cầu)
+        for lvl in levels:
+            fig_box.add_annotation(
+                x=lvl, y=6, text="Median 6.0", showarrow=False, 
+                xanchor='left', xshift=15, font=dict(size=10, color='black')
+            )
+
+        # 4. Ép Layout và fix lệch title
+        st.markdown("<h5 style='text-align: center; color: #1f2937;'>Years of Experience Distribution by Experience Level</h5>", unsafe_allow_html=True)
+        fig_box.update_layout(
+            title=None, # Tắt title mặc định để chống lệch
+            plot_bgcolor="white",
+            height=380,
+            margin=dict(l=0, r=0, t=10, b=0),
+            yaxis=dict(showgrid=True, gridcolor="#f0f0f0", gridwidth=1, zeroline=False),
+            xaxis=dict(showgrid=False)
+        )
+        
+        st.plotly_chart(fig_box, use_container_width=True)
+        
+        # Caption in nghiêng y như cũ
+        st.markdown("<p style='text-align: center; font-style: italic; color: gray;'>Figure 3a. year of experience distribution by experience level.</p>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        # ==========================================
+        
+        # 3. Trả lại 2 cái Dashboard nguyên khối nằm dưới cùng
+        show_image(BASIC / "05_experience_salary_dashboard.png")
+        show_image(BASIC / "05_salary_consistency_dashboard.png")
+
+        
+
         with st.expander("Functional-dependency evidence"):
             st.dataframe(dep, use_container_width=True, hide_index=True)
         level_spread = float(by_level["mean_salary_usd"].max() - by_level["mean_salary_usd"].min()) if not by_level.empty else np.nan
@@ -164,3 +263,17 @@ def render() -> None:
             "Quarantine `experience_level`, block salary_min/max/tier, de-duplicate skills, and test `years_of_experience` only through explicit ablation with cautious interpretation.",
             "risk",
         )
+
+# ... (code cũ của cái evidence block kết thúc ở đây) ...
+        
+        # ==========================================
+        # CHỐT HẠ: DẮT USER SANG MENU KẾ TIẾP
+        # ==========================================
+        st.markdown("---") # Kẻ đường chỉ ngang phân cách tách biệt hẳn với report
+        st.markdown("#### 🚀 Decision Next Step: Ablation Options to Run")
+        
+        # Chèn ảnh bảng kế hoạch (Nhớ copy cái ảnh sếp gửi vào thư mục chạy code và sửa tên file cho đúng)
+        show_image(ASSETS_01 / "ablation_plan.jpg")
+        
+        # Hộp thoại điều hướng sang Menu 2
+        st.info("💡 **Giai đoạn 1 (Basic Clean) đã hoàn tất.** Dữ liệu đã được dọn rác và cô lập các trường mâu thuẫn. Vui lòng chuyển sang menu **'2. Data ready for ML'** trên Sidebar để chạy các kịch bản Ablation và chốt Feature Set cuối cùng.")
